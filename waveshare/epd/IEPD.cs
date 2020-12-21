@@ -17,5 +17,6 @@ namespace net_reader.waveshare.epd
         void Clear();
         void sleep();
         void DevExit();
+        Size getSize();
     }
 }

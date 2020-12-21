@@ -255,5 +255,10 @@ namespace net_reader.waveshare.epd
         {
             epdconfig.module_exit();
         }
+
+        public Size getSize()
+        {
+            return new Size(EPD_WIDTH, EPD_HEIGHT);
+        }
     }
 }

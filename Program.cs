@@ -108,7 +108,7 @@ namespace net_reader
             EpubBook epubBook = EpubReader.ReadBook("epub/3musketeers.epub");
 
             PointF location = new PointF(10f, 10f);
-            Bitmap bmp = _im.TextToBmp(epubBook.Title, ImageManipulation.BLACK, location, 24);
+            Bitmap bmp = _im.TextToBmp(epubBook.Title, ImageManipulation.BLACK, location, _epd.getSize(), 24);
             location = new PointF(10f, 50f);
             bmp = _im.AddTextToBmp(bmp, epubBook.Author, ImageManipulation.BLUE, location, 12);
 
@@ -120,7 +120,7 @@ namespace net_reader
             EpubBook epubBook = EpubReader.ReadBook("epub/3musketeers.epub");
 
             PointF location = new PointF(10f, 10f);
-            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location, 24);
+            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location, _epd.getSize(), 24);
 
             byte[] coverImageContent = epubBook.CoverImage;
             if (coverImageContent != null)
@@ -131,7 +131,7 @@ namespace net_reader
                     Image coverImage = Image.FromStream(coverImageStream);
                     _log.LogInformation($"Image size is {coverImage.Width}x{coverImage.Height}");
                     location = new PointF(0f, 0f);
-                    bmp = _im.AddCoverImage(bmp, coverImage, location);
+                    bmp = _im.AddCoverImage(bmp, coverImage, location, _epd.getSize());
                 }
             }
 
@@ -141,7 +141,7 @@ namespace net_reader
         public static bool displayTOC(int pageNumber = 0)
         {
             PointF location = new PointF(0f, 0f);
-            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location, 24);
+            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location,_epd.getSize(), 24);
             bool hasMore = false;
             using (EpubBookRef epubBook = EpubReader.OpenBook("epub/3musketeers.epub"))
             {
@@ -159,6 +159,11 @@ namespace net_reader
             }
             displayPage(bmp);
             return hasMore;
+        }
+
+        public static bool displayPageNumber(int pageNumber)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -16,8 +16,6 @@ namespace net_reader
         public static SolidBrush YELLOW = new SolidBrush(Color.FromArgb(0xFF, 0xFF, 0xFF, 0x00));
         public static SolidBrush ORANGE = new SolidBrush(Color.FromArgb(0xFF, 0xFF, 0x80, 0x00));
         public static SolidBrush BLACK = new SolidBrush(Color.FromArgb(0xFF, 0x00, 0x00, 0x00));
-        public static int WIDTH = 448;
-        public static int HEIGHT = 600;
 
         private ILogger _log;
 
@@ -26,13 +24,13 @@ namespace net_reader
             _log = logggerFactory.CreateLogger<ImageManipulation>();
         }
 
-        public Bitmap TextToBmp(string text, SolidBrush brush, PointF location, int fontSize = 36)
+        public Bitmap TextToBmp(string text, SolidBrush brush, PointF location, Size maxSize, int fontSize = 36)
         {
             _log.LogDebug("Creating new bitmap");
-            Bitmap bmp = new Bitmap(448, 600, PixelFormat.Format32bppArgb);
+            Bitmap bmp = new Bitmap(maxSize.Width, maxSize.Height, PixelFormat.Format32bppArgb);
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.FillRectangle(WHITE, new Rectangle(0, 0, 448, 600));
+                g.FillRectangle(WHITE, new Rectangle(0, 0, maxSize.Width, maxSize.Height));
             }
             return AddTextToBmp(bmp, text, brush, location, fontSize);
         }
@@ -40,7 +38,7 @@ namespace net_reader
         public static Bitmap RotateImage(Bitmap bmp)
         {
             bmp.RotateFlip(RotateFlipType.Rotate270FlipNone);
-            using (MemoryStream ms = new MemoryStream(448 * 600))
+            using (MemoryStream ms = new MemoryStream(bmp.Width * bmp.Height))
             {
                 bmp.Save(ms, ImageFormat.Bmp);
                 bmp = new Bitmap(ms);
@@ -61,7 +59,7 @@ namespace net_reader
             }
 
             bmp.RotateFlip(RotateFlipType.RotateNoneFlipNone);
-            using (MemoryStream ms = new MemoryStream(448 * 600))
+            using (MemoryStream ms = new MemoryStream(bmp.Width * bmp.Height))
             {
                 bmp.Save(ms, ImageFormat.Bmp);
                 bmp = new Bitmap(ms);
@@ -80,31 +78,31 @@ namespace net_reader
             return bitmap;
         }
 
-        public Tuple<int, int> FigureOutCoverSize(int width, int height)
+        public Size FigureOutCoverSize(Size size, Size maxSize)
         {
             var ratio = 1.0;
-            var newHeight = height;
-            var newWidth = width;
-            if (width > height)
+            var newHeight = size.Height;
+            var newWidth = size.Width;
+            if (size.Width > size.Height)
             {
-                ratio = (float)width/WIDTH;
-                newWidth = WIDTH;
-                newHeight = (int)(height / ratio);
+                ratio = (float)size.Width/maxSize.Width;
+                newWidth = maxSize.Width;
+                newHeight = (int)(size.Height / ratio);
             }
             else 
             {
-                ratio = (float)height/HEIGHT;
-                newWidth = (int)(width / ratio);
-                newHeight = HEIGHT;
+                ratio = (float)size.Height/maxSize.Height;
+                newWidth = (int)(size.Width / ratio);
+                newHeight = maxSize.Height;
             }
             _log.LogDebug($"ratio is {ratio}");
-            return new Tuple<int, int>(newWidth, newHeight);
+            return new Size(newWidth, newHeight);
         }
 
-        public Bitmap AddCoverImage(Bitmap bmp, Image coverImage, PointF location)
+        public Bitmap AddCoverImage(Bitmap bmp, Image coverImage, PointF location, Size maxSize)
         {
-            var newSize = FigureOutCoverSize(coverImage.Width, coverImage.Height);
-            Bitmap smallCover = ImageManipulation.ResizeImage(coverImage, newSize.Item1, newSize.Item2);
+            var newSize = FigureOutCoverSize(coverImage.Size, maxSize);
+            Bitmap smallCover = ImageManipulation.ResizeImage(coverImage, newSize.Width, newSize.Height);
             using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.DrawImage(smallCover, location);
