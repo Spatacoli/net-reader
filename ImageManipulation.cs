@@ -24,6 +24,17 @@ namespace net_reader
             _log = logggerFactory.CreateLogger<ImageManipulation>();
         }
 
+        public Bitmap GetBitmap(Size maxSize)
+        {
+            _log.LogDebug("Creating new bitmap");
+            Bitmap bmp = new Bitmap(maxSize.Width, maxSize.Height, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.FillRectangle(WHITE, new Rectangle(0, 0, maxSize.Width, maxSize.Height));
+            }
+            return bmp;
+        }
+
         public Bitmap TextToBmp(string text, SolidBrush brush, PointF location, Size maxSize, int fontSize = 36)
         {
             _log.LogDebug("Creating new bitmap");

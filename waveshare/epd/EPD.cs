@@ -260,5 +260,10 @@ namespace net_reader.waveshare.epd
         {
             return new Size(EPD_WIDTH, EPD_HEIGHT);
         }
+
+        public Size getSizeReversed()
+        {
+            return new Size(EPD_HEIGHT, EPD_WIDTH);
+        }
     }
 }

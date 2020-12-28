@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Device.Gpio;
-using System.IO;
-using System.Text;
-using System.Threading;
-
-using VersOne.Epub;
-using HtmlAgilityPack;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,15 +14,15 @@ namespace net_reader
         private static ILogger _log;
         private static IEPD _epd;
         private static IImageManipulation _im;
+        private static IReader _reader;
 
         public static void displayPage(Bitmap bmp)
         {
             try
             {
                 _log.LogInformation("e-Reader change page");
-                _log.LogInformation("init");
+                _log.LogInformation("init and Clear");
                 _epd.init();
-                _log.LogInformation("Clear");
                 _epd.Clear();
                 _log.LogInformation("Display bmp image");
                 _epd.display(_epd.getBuffer(bmp));
@@ -49,6 +43,7 @@ namespace net_reader
                 .AddSingleton<IImageManipulation, ImageManipulation>()
                 .AddSingleton<IConfig, Config>()
                 .AddSingleton<IEPD, EPD>()
+                .AddSingleton<IReader, Reader>()
                 .BuildServiceProvider();
 
             _log = serviceProvider.GetService<ILoggerFactory>()
@@ -56,6 +51,7 @@ namespace net_reader
 
             _epd = serviceProvider.GetService<IEPD>();
             _im = serviceProvider.GetService<IImageManipulation>();
+            _reader = serviceProvider.GetService<IReader>();
 
             _log.LogDebug("Hello World!");
             GpioController controller = new GpioController(PinNumberingScheme.Logical);
@@ -66,7 +62,11 @@ namespace net_reader
             controller.OpenPin(next_button, PinMode.InputPullUp);
 
             int pageNumber = 0;
-            int bookMode = 2;
+            int bookMode = 3;
+            bool hasMore = false;
+
+            _reader.openBook("3musketeers.epub");
+
             while (controller.Read(home_button) == true)
             {
                 if (controller.Read(next_button) == false)
@@ -74,15 +74,17 @@ namespace net_reader
                     switch (bookMode)
                     {
                         case 0:
-                            displayCoverImage();
+                            displayPage(_reader.getCoverImage());
                             bookMode++;
                             break;
                         case 1:
-                            displayTitlePage();
+                            displayPage(_reader.getTitlePage());
                             bookMode++;
                             break;  
                         case 2:
-                            bool hasMore = displayTOC(pageNumber);
+                            var toc = _reader.getToc(pageNumber);
+                            displayPage(toc.Item1);
+                            hasMore = toc.Item2;
                             if (hasMore)
                             {
                                 pageNumber++;
@@ -94,76 +96,21 @@ namespace net_reader
                             }
                             break;                      
                         default:
-                            // displayPageNumber(pageNumber - 2);
-                            // pageNumber++;
-                            pageNumber = 0;
+                            var page = _reader.getPageNumber(pageNumber);
+                            displayPage(page.Item1);
+                            hasMore = page.Item2;
+                            if (hasMore) {
+                                pageNumber++;
+                            }
+                            else
+                            {
+                                pageNumber = 0;
+                                bookMode = 0;
+                            }
                             break;
                     }
                 }
             }
-        }
-
-        public static void displayTitlePage()
-        {
-            EpubBook epubBook = EpubReader.ReadBook("epub/3musketeers.epub");
-
-            PointF location = new PointF(10f, 10f);
-            Bitmap bmp = _im.TextToBmp(epubBook.Title, ImageManipulation.BLACK, location, _epd.getSize(), 24);
-            location = new PointF(10f, 50f);
-            bmp = _im.AddTextToBmp(bmp, epubBook.Author, ImageManipulation.BLUE, location, 12);
-
-            displayPage(bmp);
-        }
-
-        public static void displayCoverImage()
-        {
-            EpubBook epubBook = EpubReader.ReadBook("epub/3musketeers.epub");
-
-            PointF location = new PointF(10f, 10f);
-            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location, _epd.getSize(), 24);
-
-            byte[] coverImageContent = epubBook.CoverImage;
-            if (coverImageContent != null)
-            {
-                _log.LogInformation("We have a cover image");
-                using (MemoryStream coverImageStream = new MemoryStream(coverImageContent))
-                {
-                    Image coverImage = Image.FromStream(coverImageStream);
-                    _log.LogInformation($"Image size is {coverImage.Width}x{coverImage.Height}");
-                    location = new PointF(0f, 0f);
-                    bmp = _im.AddCoverImage(bmp, coverImage, location, _epd.getSize());
-                }
-            }
-
-            displayPage(bmp);
-        }
-
-        public static bool displayTOC(int pageNumber = 0)
-        {
-            PointF location = new PointF(0f, 0f);
-            Bitmap bmp = _im.TextToBmp(string.Empty, ImageManipulation.BLACK, location,_epd.getSize(), 24);
-            bool hasMore = false;
-            using (EpubBookRef epubBook = EpubReader.OpenBook("epub/3musketeers.epub"))
-            {
-                var navItems = epubBook.GetNavigation().ToArray();
-                int max = Math.Min(navItems.Length, (60 * (pageNumber + 1)));
-                for (int i = 60 * pageNumber; i < max; i++)
-                {
-                    var navItem = navItems[i];
-                    bmp = _im.AddTextToBmp(bmp, navItem.Title, ImageManipulation.BLACK, location, 8);
-                    location.Y = location.Y + 10f;
-                }
-                if (navItems.Length > (60 * (pageNumber + 1))) {
-                    hasMore = true;
-                }
-            }
-            displayPage(bmp);
-            return hasMore;
-        }
-
-        public static bool displayPageNumber(int pageNumber)
-        {
-            throw new NotImplementedException();
         }
     }
 }

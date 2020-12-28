@@ -7,6 +7,7 @@ namespace net_reader
 {
     public interface IImageManipulation
     {
+        Bitmap GetBitmap(Size maxSize);
         Bitmap TextToBmp(string text, SolidBrush brush, PointF location, Size maxSize, int fontSize = 36);
         Bitmap AddTextToBmp(Bitmap bmp, string text, SolidBrush brush, PointF location, int fontSize = 36);
         Size FigureOutCoverSize(Size size, Size maxSize);
