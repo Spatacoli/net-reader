@@ -30,20 +30,9 @@ namespace net_reader
             Bitmap bmp = new Bitmap(maxSize.Width, maxSize.Height, PixelFormat.Format32bppArgb);
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                g.FillRectangle(WHITE, new Rectangle(0, 0, maxSize.Width, maxSize.Height));
+                g.Clear(Color.White);
             }
             return bmp;
-        }
-
-        public Bitmap TextToBmp(string text, SolidBrush brush, PointF location, Size maxSize, int fontSize = 36)
-        {
-            _log.LogDebug("Creating new bitmap");
-            Bitmap bmp = new Bitmap(maxSize.Width, maxSize.Height, PixelFormat.Format32bppArgb);
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                g.FillRectangle(WHITE, new Rectangle(0, 0, maxSize.Width, maxSize.Height));
-            }
-            return AddTextToBmp(bmp, text, brush, location, fontSize);
         }
 
         public static Bitmap RotateImage(Bitmap bmp)
@@ -63,7 +52,7 @@ namespace net_reader
             _log.LogDebug("Adding Text to bitmap");
             using (Graphics g = Graphics.FromImage(bmp))
             {
-                using (Font dejavu = new Font("DejaVu Sans Mono", fontSize))
+                using (Font dejavu = new Font("DejaVu Sans Mono", fontSize, FontStyle.Regular))
                 {
                     g.DrawString(text, dejavu, brush, location);
                 }

@@ -40,9 +40,10 @@ namespace net_reader
             _log.LogDebug("displayTitlePage");
 
             PointF location = new PointF(10f, 10f);
-            Bitmap bmp = _im.TextToBmp(book.Title, ImageManipulation.BLACK, location, _epd.getSizeReversed(), 24);
+            Bitmap bmp = _im.GetBitmap(_epd.getSizeReversed());
+            bmp = _im.AddTextToBmp(bmp, book.Title, ImageManipulation.BLACK, location, 24);
             location = new PointF(10f, 50f);
-            bmp = _im.AddTextToBmp(bmp, book.Author, ImageManipulation.BLUE, location, 12);
+            bmp = _im.AddTextToBmp(bmp, book.Author, ImageManipulation.BLACK, location, 12);
             return bmp;
         }
 

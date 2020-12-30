@@ -62,7 +62,7 @@ namespace net_reader
             controller.OpenPin(next_button, PinMode.InputPullUp);
 
             int pageNumber = 0;
-            int bookMode = 3;
+            int bookMode = 0;
             bool hasMore = false;
 
             _reader.openBook("3musketeers.epub");

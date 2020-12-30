@@ -181,6 +181,10 @@ namespace net_reader.waveshare.epd
                         {
                             color = 0x06;
                         }
+                        else 
+                        {
+                            color = 0x07;
+                        }
                         int data_t = buf[add] & (~(0xF0 >> ((x % 2) * 4)));
                         buf[add] = Convert.ToByte(data_t | ((color << 4) >> ((x % 2) * 4)));
                     }
