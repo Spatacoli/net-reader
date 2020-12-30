@@ -19,8 +19,8 @@ namespace net_reader
         private IImageManipulation _im;
         private IEPD _epd;
         private string bookContent;
-        private int linesPerPage = 49;
-        private int charsPerLine = 56;
+        private readonly int linesPerPage = 49;
+        private readonly int charsPerLine = 56;
 
         public Reader(ILoggerFactory loggerFactory, IImageManipulation imageManipulation, IEPD ePD)
         {
@@ -101,8 +101,6 @@ namespace net_reader
             Bitmap bmp = _im.GetBitmap(_epd.getSizeReversed());
 
             bool hasMore = false;
-
-            int skipChars = pageNumber * charsPerLine * linesPerPage;
 
             string[] lines = bookContent.Split("\n");
 
